@@ -11,21 +11,21 @@ namespace ProductMVC.Controllers
     [Route("[controller]")]
     public class ProductController:Controller
     {
-        private static List<Product> products = new();
+        private static readonly List<Product> _products = new();
 
         [HttpGet]
         public IActionResult Get()
         {
-            if (products.Count == 0)
+            if (_products.Count == 0)
                 return NotFound();
 
-            return Ok(products);
+            return Ok(_products);
         }
 
         [HttpGet]
         public IActionResult Get(int id)
         {
-            var newProduct = products.Find(x => x.Id == id);
+            var newProduct = _products.Find(x => x.Id == id);
             if (newProduct is null)
             {
                 return NotFound();
@@ -36,22 +36,26 @@ namespace ProductMVC.Controllers
         [HttpPost]
         public IActionResult Add(Product product)
         {
-            if (product is null) return NotFound();
+            if (product is null)
+                return BadRequest();
 
-            products.Add(product);
-            return Ok(products);
+            _products.Add(product);
+            return Ok(_products);
         }
 
         [HttpPut]
         public IActionResult Update(Product product)
         {
-            var oldProduct = products.Find(x => x.Id == product.Id);
+            if (product is null)
+                return BadRequest();
+
+            var oldProduct = _products.Find(x => x.Id == product.Id);
 
             if (oldProduct is null)
                 return NotFound();
 
-            products.Remove(oldProduct);
-            products.Add(product);
+            _products.Remove(oldProduct);
+            _products.Add(product);
 
             return Ok(product);
         }
@@ -59,7 +63,7 @@ namespace ProductMVC.Controllers
         [HttpDelete]
         public IActionResult Delete(int id)
         {
-            var delProduct = products.Find(x => x.Id == id);
+            var delProduct = _products.Find(x => x.Id == id);
             if (delProduct is null)
             {
                 return NotFound();
