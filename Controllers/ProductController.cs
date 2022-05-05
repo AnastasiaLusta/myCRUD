@@ -73,7 +73,7 @@ namespace ProductMVC.Controllers
         [HttpDelete]
         public async Task<ActionResult<Product>> DeleteAsync(long id)
         {
-            var delProduct = await _db.Products.FindAsync(product.Id);
+            var delProduct = await _db.Products.FindAsync(id);
             if (delProduct is null)
             {
                 return NotFound();
