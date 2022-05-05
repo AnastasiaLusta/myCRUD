@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using ProductMVC.Models;
 
 namespace ProductMVC.Controllers
 {
@@ -11,65 +12,77 @@ namespace ProductMVC.Controllers
     [Route("[controller]")]
     public class ProductController:Controller
     {
-        private static readonly List<Product> _products = new();
+        private readonly ApplicationContext _db;
 
-        [HttpGet]
-        public IActionResult Get()
+        public ProductController(ApplicationContext context)
         {
-            if (_products.Count == 0)
-                return NotFound();
-
-            return Ok(_products);
+            _db = context;
         }
 
         [HttpGet]
-        public IActionResult Get(int id)
+        public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            var newProduct = _products.Find(x => x.Id == id);
-            if (newProduct is null)
+            if (_db.Products.Count() == 0)
+                return NotFound();
+
+            return await _db.Products.ToListAsync();
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<Product>> GetAsync(long id)
+        {
+            var myProduct = await _db.Products.FindAsync(id);
+
+            if (myProduct is null)
             {
                 return NotFound();
             }
-            return Ok(newProduct);
+
+            return myProduct;
         }
 
         [HttpPost]
-        public IActionResult Add(Product product)
+        public async Task<ActionResult<Product>> AddAsync(Product product)
         {
             if (product is null)
                 return BadRequest();
 
-            _products.Add(product);
-            return Ok(_products);
+            _db.Products.Add(product);
+            await _db.SaveChangesAsync();
+
+            return new ObjectResult(product) {StatusCode = StatusCodes.Status201Created};
         }
 
         [HttpPut]
-        public IActionResult Update(Product product)
+        public async Task<ActionResult<Product>> UpdateAsync(Product product)
         {
             if (product is null)
                 return BadRequest();
 
-            var oldProduct = _products.Find(x => x.Id == product.Id);
+            var oldProduct = await _db.Products.FindAsync(product.Id);
 
             if (oldProduct is null)
                 return NotFound();
 
-            _products.Remove(oldProduct);
-            _products.Add(product);
+            _db.Products.Update(product);
+            await _db.SaveChangesAsync();
 
-            return Ok(product);
+            return NoContent();
         }
 
         [HttpDelete]
-        public IActionResult Delete(int id)
+        public async Task<ActionResult<Product>> DeleteAsync(long id)
         {
-            var delProduct = _products.Find(x => x.Id == id);
+            var delProduct = await _db.Products.FindAsync(product.Id);
             if (delProduct is null)
             {
                 return NotFound();
             }
 
-            return Ok("The product is deleted");
+            _db.Products.Remove(delProduct);
+            await _db.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
